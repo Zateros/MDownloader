@@ -9,8 +9,10 @@ import 'package:mdownloader/backend/dart_app_data/src/locator.dart';
 import 'package:mdownloader/backend/filesystem/get_versions.dart';
 import 'package:mdownloader/backend/filesystem/handle_download.dart';
 import 'package:mdownloader/backend/filesystem/handle_nonempty_mods.dart';
+import 'package:mdownloader/backend/filesystem/is_minecraft_installed.dart';
 import 'package:mdownloader/constants/consts.dart';
 import 'package:mdownloader/ui/filesystem/file_card.dart';
+import 'package:flutter_animated_splash/flutter_animated_splash.dart';
 
 import 'ui/appBar/app_bar.dart';
 import 'ui/colors/convert_to_materialcolor.dart';
@@ -25,7 +27,6 @@ List<FileCard> files = [];
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   List<Color> colors = [
-    Colors.black,
     Colors.red,
     Colors.blue,
     Colors.green,
@@ -46,65 +47,58 @@ void main() async {
     Colors.deepPurple
   ];
 
-  Color randomColor = colors.elementAt(Random().nextInt(colors.length));
+  MAIN_COLOR = colors.elementAt(Random().nextInt(colors.length));
 
-  bool isClientOnline = await checkIfClientOnline();
-  bool isServerOnline = await checkIfServerOnline();
-  String localVersion = await getLocalVersion();
-  String cloudVersion = await getCloudVersion();
+  SERVER_ONLINE = await checkIfServerOnline();
+  LOCAL_VERSION = await getLocalVersion();
+  CLOUD_VERSION = await getCloudVersion();
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   MINECRAFT_LOCATION = prefs.getString("mcLocation") == null
       ? Locator.getPlatformSpecificCachePath() +
           "$PLATFORM_SEPERATOR.minecraft${PLATFORM_SEPERATOR}mods"
       : prefs.getString("mcLocation")!;
-
-  Directory dir = Directory(MINECRAFT_LOCATION);
-  List<FileSystemEntity> contents = await dir.list().toList();
-  files = FileCardContent("", randomColor).fromFileList(contents, randomColor);
-
+  MINECRAFT_INSTALLED = await isMinecraftInstalled(Directory(MINECRAFT_LOCATION));
+  
+  if (MINECRAFT_INSTALLED) {
+    Directory dir = Directory(MINECRAFT_LOCATION);
+    List<FileSystemEntity> contents = await dir.list().toList();
+    files = FileCardContent("", MAIN_COLOR).fromFileList(contents, MAIN_COLOR);
+  } else {
+    files.add(FileCard(
+      name:
+          "Non-existant directory...\nIs Minecraft installed at the given location?",
+      color: MAIN_COLOR,
+      icon: const Icon(Icons.error_outline_rounded),
+      width: 335,
+      height: 75,
+    ));
+  }
   setWindowTitle('');
   setWindowMinSize(const Size(850, 700));
-  setWindowMaxSize(Size.infinite);
+  setWindowMaxSize(const Size(850, 700));
 
-  runApp(MainApp(
-      mainColor: randomColor,
-      isClientOnline: isClientOnline,
-      isServerOnline: isServerOnline,
-      localVersion: localVersion,
-      cloudVersion: cloudVersion));
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
-  final Color mainColor;
-  final bool isClientOnline;
-  final bool isServerOnline;
-  final String localVersion;
-  final String cloudVersion;
-
-  const MainApp(
-      {Key? key,
-      required this.mainColor,
-      required this.isClientOnline,
-      required this.isServerOnline,
-      required this.localVersion,
-      required this.cloudVersion})
-      : super(key: key);
+  const MainApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'MDown5loader',
+      title: 'MDownloader',
       theme: ThemeData(
-        primarySwatch: convertToMaterialColor(mainColor),
+        primarySwatch: convertToMaterialColor(MAIN_COLOR),
       ),
-      home: HomePage(
-        color: mainColor,
-        isClientOnline: isClientOnline,
-        isServerOnline: isServerOnline,
-        localVersion: localVersion,
-        cloudVersion: cloudVersion,
+      home: AnimatedSpash(
+        child: const Image(image: AssetImage("lib/assets/logo.png"), filterQuality: FilterQuality.medium, isAntiAlias: true, width: 200, height: 200,),
+        navigator: const HomePage(),
+        durationInSeconds: 4,
+        curve: Curves.decelerate,
+        type: Transition.fade,
+        backgroundColor: MAIN_COLOR,
       ),
     );
   }
@@ -112,28 +106,16 @@ class MainApp extends StatelessWidget {
 
 // ignore: must_be_immutable
 class HomePage extends StatefulWidget {
-  final Color color;
-  final bool isClientOnline;
-  final bool isServerOnline;
-  late String? localVersion;
-  late String? cloudVersion;
-
-  HomePage(
-      {Key? key,
-      required this.color,
-      required this.isClientOnline,
-      required this.isServerOnline,
-      this.localVersion,
-      this.cloudVersion})
-      : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   void _updateModpack() async {
-    if (widget.localVersion == widget.cloudVersion) {
-      bool reinstalled = await deleteThenReinstall(widget.cloudVersion!);
+    if (!MINECRAFT_INSTALLED) return;
+    if (LOCAL_VERSION == CLOUD_VERSION) {
+      bool reinstalled = await deleteThenReinstall(CLOUD_VERSION);
       dev.log("Reinstall status: ${reinstalled.toString()}");
     } else {
       bool seperated = await separateNonrelevantFilesIntoDir();
@@ -141,50 +123,68 @@ class _HomePageState extends State<HomePage> {
       bool downloaded = await downloadAll();
       dev.log("Download status: ${downloaded.toString()}");
     }
-    widget.localVersion = await getLocalVersion();
+    LOCAL_VERSION = await getLocalVersion();
     setState(() {
       dev.log("Reloading state");
     });
+  }
+  
+  @override
+  void setState(VoidCallback fn) async {
+    MINECRAFT_INSTALLED = await isMinecraftInstalled(Directory(MINECRAFT_LOCATION));
+    setState(() {
+    });
+    super.setState(fn);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarWidget(
-        height: 150,
-        color: widget.color,
-        isOnline: widget.isClientOnline,
-        isServerOnline: widget.isServerOnline,
-        localVersion: widget.localVersion!,
-        cloudVersion: widget.cloudVersion!,
-      ),
+      appBar: AppBarWidget(height: 150),
       body: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Expanded(
-                child: Padding(
-                    padding:
-                        const EdgeInsets.only(bottom: 30, left: 45, right: 85),
-                    child: Container(
-                        decoration: BoxDecoration(
+            Stack(children: [
+              Positioned(
+                child: Text(
+                  MINECRAFT_INSTALLED ? "Mods folder content" : "",
+                  style: TextStyle(
+                      color: Colors.grey[400],
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w500),
+                ),
+                bottom: 10,
+                left: 115,
+              ),
+              Expanded(
+                  child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: 40, left: 45, right: 85),
+                      child: Container(
+                          decoration: BoxDecoration(
                             border: Border.all(
-                                width: 1.5, color: Colors.grey[350]!),
+                                width: 1.5,
+                                color: MINECRAFT_INSTALLED
+                                    ? Colors.grey[350]!
+                                    : Colors.transparent),
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(10)),
-                            color: Colors.grey[200]),
-                        child: LimitedBox(
-                          maxHeight: 200.0,
-                          child: SingleChildScrollView(
-                              child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            alignment: WrapAlignment.start,
-                            direction: Axis.vertical,
-                            spacing: 10,
-                            children: files,
-                          )),
-                        )))),
+                            //color: MINECRAFT_INSTALLED ? Colors.grey[200] : Colors.transparent),
+                          ),
+                          child: LimitedBox(
+                            maxHeight: 200.0,
+                            child: SingleChildScrollView(
+                                child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              alignment: WrapAlignment.start,
+                              direction: Axis.vertical,
+                              spacing: 10,
+                              children: files,
+                            )),
+                          ))))
+            ]),
             Expanded(
                 child: Padding(
                     padding: const EdgeInsets.only(right: 0),
@@ -200,7 +200,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             style: ButtonStyle(
                                 backgroundColor:
-                                    MaterialStateProperty.all(widget.color)),
+                                    MaterialStateProperty.all(MAIN_COLOR)),
                           )
                         ],
                       ),
@@ -210,18 +210,24 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _updateModpack,
-        tooltip: widget.localVersion == widget.cloudVersion
-            ? 'Re-download'
-            : widget.localVersion == 'none'
-                ? 'Download'
-                : 'Update',
-        child: Icon(widget.localVersion == widget.cloudVersion
-            ? Icons.download_done_rounded
-            : widget.localVersion == 'none'
-                ? Icons.download_rounded
-                : Icons.update),
+        tooltip: MINECRAFT_INSTALLED
+            ? LOCAL_VERSION == CLOUD_VERSION
+                ? 'Re-download'
+                : LOCAL_VERSION == 'none'
+                    ? 'Download'
+                    : 'Update'
+            : "Not available",
+        child: Icon(MINECRAFT_INSTALLED
+            ? LOCAL_VERSION == CLOUD_VERSION
+                ? Icons.download_done_rounded
+                : LOCAL_VERSION == 'none'
+                    ? Icons.download_rounded
+                    : Icons.update
+            : Icons.not_interested_rounded),
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20))),
+        enableFeedback: MINECRAFT_INSTALLED ? true : false,
+        backgroundColor: MINECRAFT_INSTALLED ? MAIN_COLOR : Colors.grey[400],
       ),
     );
   }

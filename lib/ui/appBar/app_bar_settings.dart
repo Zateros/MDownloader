@@ -1,15 +1,15 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:mdownloader/constants/consts.dart';
 
 class SettingsAppBarWidget extends StatelessWidget
     implements PreferredSizeWidget {
   final double height;
-  final Color color;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
-  SettingsAppBarWidget({Key? key, required this.height, required this.color})
+  SettingsAppBarWidget({Key? key, required this.height})
       : super(key: key);
 
   @override
@@ -22,18 +22,20 @@ class SettingsAppBarWidget extends StatelessWidget
           children: <Widget>[
             Container(
               width: MediaQuery.of(context).size.width,
-              height: 85.0,
+              height: 75.0,
               child: Center(
                 child: Text(
                   "MDownloader",
                   style: TextStyle(
-                      color: Colors.white,
+                      color: MAIN_COLOR == Colors.yellow || MAIN_COLOR == Colors.amber
+                        ? Colors.black
+                        : Colors.white,
                       fontSize: 21.0,
                       fontWeight: FontWeight.bold),
                 ),
               ),
               decoration: BoxDecoration(
-                  color: color,
+                  color: MAIN_COLOR,
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(25),
                       bottomRight: Radius.circular(25)),
@@ -89,7 +91,7 @@ class SettingsAppBarWidget extends StatelessWidget
                                       height: 34,
                                       child: Icon(
                                         Icons.arrow_back_rounded,
-                                        color: color,
+                                        color: MAIN_COLOR,
                                         size: 24,
                                       ),
                                     ),

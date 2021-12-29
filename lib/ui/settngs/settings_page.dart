@@ -7,19 +7,21 @@ import 'package:mdownloader/ui/appBar/app_bar_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
-  final Color color;
-  const SettingsPage({Key? key, required this.color}) : super(key: key);
+  const SettingsPage({Key? key}) : super(key: key);
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+
+  final TextEditingController _controller = TextEditingController(text: MINECRAFT_LOCATION);
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-            appBar: SettingsAppBarWidget(height: 150, color: widget.color),
+            appBar: SettingsAppBarWidget(height: 150),
             body: Column(
               children: [
                 Row(
@@ -31,8 +33,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           child: Padding(
                               padding: EdgeInsets.only(left: 15),
                               child: TextField(
-                                controller: TextEditingController(
-                                    text: MINECRAFT_LOCATION),
+                                clipBehavior: Clip.antiAliasWithSaveLayer,
+                                onSubmitted: (value) async {
+                                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                                  await prefs.setString("mcLocation", value);
+                                  MINECRAFT_LOCATION = value;
+                                  setState(() {
+                                    _controller.text = value;
+                                  });
+                                },
+                                controller: _controller,
                                 decoration: InputDecoration(
                                     icon: Icon(Icons.folder_rounded),
                                     helperText: "Minecraft location",
@@ -72,7 +82,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                           height: 34,
                                           child: Icon(
                                             Icons.table_rows,
-                                            color: widget.color,
+                                            color: MAIN_COLOR,
                                             size: 24,
                                           ),
                                         ),

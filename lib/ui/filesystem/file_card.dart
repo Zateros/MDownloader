@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:mdownloader/constants/consts.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 
@@ -27,20 +28,24 @@ class FileCardContent {
 class FileCard extends StatelessWidget {
   final String name;
   final Color color;
-  const FileCard({Key? key, required this.name, required this.color})
+  final Icon icon;
+  final double width;
+  final double height;
+
+  const FileCard({Key? key, required this.name, required this.color, this.icon=const Icon(Icons.file_copy_rounded), this.width=275, this.height=55})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 275,
-      height: 55,
+      width: width,
+      height: height,
       child: TextButton(
         child: Stack(
           children: [
-            const Positioned(
+            Positioned(
               child: Icon(
-                Icons.file_copy_rounded,
+                icon.icon,
                 color: Colors.black,
               ),
               left: 12,
@@ -64,7 +69,7 @@ class FileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18.0),
                   side: BorderSide(color: color))),
           backgroundColor: MaterialStateProperty.all(color),
-          enableFeedback: true,
+          enableFeedback: MINECRAFT_INSTALLED ? true : false,
           overlayColor: MaterialStateProperty.all(Colors.white.withAlpha(34)),
         ),
       ),

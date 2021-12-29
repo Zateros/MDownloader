@@ -19,7 +19,7 @@ dependencies:
       url: git://github.com/google/flutter-desktop-embedding.git
       path: plugins/window_size
   shared_preferences: ^2.0.11
-  flutter_svg: ^1.0.0
+  flutter_animated_splash: ^0.0.9
 
 dev_dependencies:
   flutter_test:

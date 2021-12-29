@@ -3,25 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:mdownloader/ui/animation/route_push.dart';
 import 'package:mdownloader/ui/settngs/settings_page.dart';
+import 'package:mdownloader/constants/consts.dart';
 
 class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   final double height;
-  final Color color;
-  final bool isOnline;
-  final bool isServerOnline;
-  final String localVersion;
-  final String cloudVersion;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
-  AppBarWidget(
-      {Key? key,
-      required this.height,
-      required this.color,
-      required this.isOnline,
-      required this.isServerOnline,
-      required this.localVersion,
-      required this.cloudVersion})
+  AppBarWidget({Key? key, required this.height})
       : super(key: key);
 
   @override
@@ -35,31 +24,18 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
             Container(
               width: MediaQuery.of(context).size.width,
               height: 75.0,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      "lib/assets/logo.png",
-                      height: 50,
-                      width: 50,
-                      isAntiAlias: true,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      "MDownloader",
-                      style: TextStyle(
-                          color: color == Colors.yellow || color == Colors.amber
-                              ? Colors.black
-                              : Colors.white,
-                          fontSize: 21.0,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(width: 30)
-                  ]),
+              child: Center(
+                  child: Text(
+                "MDownloader",
+                style: TextStyle(
+                    color: MAIN_COLOR == Colors.yellow || MAIN_COLOR == Colors.amber
+                        ? Colors.black
+                        : Colors.white,
+                    fontSize: 21.0,
+                    fontWeight: FontWeight.bold),
+              )),
               decoration: BoxDecoration(
-                  color: color,
+                  color: MAIN_COLOR,
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(25),
                       bottomRight: Radius.circular(25)),
@@ -106,21 +82,21 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Icon(
-                                      isServerOnline
+                                      SERVER_ONLINE
                                           ? Icons.cloud
                                           : Icons.cloud_off_rounded,
                                       size: 30,
-                                      color: color,
+                                      color: MAIN_COLOR,
                                     ),
                                     SizedBox(width: 10),
                                     Text(
-                                        "Server ${isServerOnline ? "online" : "offline"}"),
+                                        "Server ${SERVER_ONLINE ? "online" : "offline"}"),
                                   ],
                                 ),
                               ),
                               Center(
                                   child: Text(
-                                "Local Version: $localVersion   Cloud Version: $cloudVersion",
+                                "Local Version: $LOCAL_VERSION   Cloud Version: $CLOUD_VERSION",
                                 style: TextStyle(
                                     fontSize: 18, color: Colors.black),
                               )),
@@ -135,9 +111,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
                                           context,
                                           FadeRouteBuilder(
                                               builder: (context) =>
-                                                  SettingsPage(
-                                                    color: color,
-                                                  )));
+                                                  SettingsPage()));
                                     },
                                     splashColor: Colors.grey[100],
                                     highlightColor: Colors.grey[100],
@@ -146,7 +120,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
                                       height: 34,
                                       child: Icon(
                                         Icons.settings,
-                                        color: color,
+                                        color: MAIN_COLOR,
                                         size: 24,
                                       ),
                                     ),

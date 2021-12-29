@@ -9,7 +9,11 @@ import 'package:http/http.dart' as http;
 
 Future<String> getLocalVersion() async {
   if (!await File(MINECRAFT_LOCATION + VERSION_FILE).exists()) {
-    await File(MINECRAFT_LOCATION + VERSION_FILE).create();
+    if (Directory(MINECRAFT_LOCATION).existsSync()) {
+      await File(MINECRAFT_LOCATION + VERSION_FILE).create();
+    } else {
+      return "MC not installed";
+    }
     return "none";
   } else {
     File mpack = File(MINECRAFT_LOCATION + VERSION_FILE);
