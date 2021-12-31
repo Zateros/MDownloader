@@ -11,8 +11,14 @@ Future<bool> checkIfClientOnline() async {
 }
 
 Future<bool> checkIfServerOnline() async {
-  var resp = await http
-      .get(Uri.parse("$API_URL/status"), headers: {"x-access-token": API_KEY});
-  log("Server status: ${resp.body}");
-  return resp.body == "online" ? true : false;
+  try {
+    var resp = await http.get(Uri.parse("$API_URL/status"), headers: {
+      "x-access-token": API_KEY
+    }).timeout(const Duration(milliseconds: 500));
+    log("Server status: ${resp.body}");
+    return resp.body == "online" ? true : false;
+  } catch (e) {
+    log("Error @ checking server's status: ${e.toString()}");
+    return false;
+  }
 }

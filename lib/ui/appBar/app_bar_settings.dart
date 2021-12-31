@@ -1,16 +1,16 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:mdownloader/constants/consts.dart';
+import 'package:mdownloader/ui/colors/gradient_icon.dart';
 
 class SettingsAppBarWidget extends StatelessWidget
     implements PreferredSizeWidget {
   final double height;
-  final Color color;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
-  SettingsAppBarWidget({Key? key, required this.height, required this.color})
-      : super(key: key);
+  SettingsAppBarWidget({Key? key, required this.height}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,18 +22,21 @@ class SettingsAppBarWidget extends StatelessWidget
           children: <Widget>[
             Container(
               width: MediaQuery.of(context).size.width,
-              height: 85.0,
+              height: 75.0,
               child: Center(
                 child: Text(
                   "MDownloader",
                   style: TextStyle(
-                      color: Colors.white,
+                      color: MAIN_COLOR.contains(Colors.yellow) ||
+                              MAIN_COLOR.contains(Colors.amber)
+                          ? Colors.black
+                          : Colors.white,
                       fontSize: 21.0,
                       fontWeight: FontWeight.bold),
                 ),
               ),
               decoration: BoxDecoration(
-                  color: color,
+                  gradient: LinearGradient(colors: MAIN_COLOR),
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(25),
                       bottomRight: Radius.circular(25)),
@@ -87,10 +90,11 @@ class SettingsAppBarWidget extends StatelessWidget
                                     child: SizedBox(
                                       width: 34,
                                       height: 34,
-                                      child: Icon(
-                                        Icons.arrow_back_rounded,
-                                        color: color,
+                                      child: GradientIcon(
+                                        icon: Icons.arrow_back_rounded,
                                         size: 24,
+                                        gradient:
+                                            LinearGradient(colors: MAIN_COLOR),
                                       ),
                                     ),
                                   ))

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:mdownloader/constants/consts.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 
@@ -27,46 +28,65 @@ class FileCardContent {
 class FileCard extends StatelessWidget {
   final String name;
   final Color color;
-  const FileCard({Key? key, required this.name, required this.color})
+  final Icon icon;
+  final double width;
+  final double height;
+
+  const FileCard(
+      {Key? key,
+      required this.name,
+      required this.color,
+      this.icon = const Icon(Icons.file_copy_rounded),
+      this.width = 275,
+      this.height = 55})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 275,
-      height: 55,
-      child: TextButton(
-        child: Stack(
-          children: [
-            const Positioned(
-              child: Icon(
-                Icons.file_copy_rounded,
-                color: Colors.black,
+      width: width,
+      height: height,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            enableFeedback: MINECRAFT_INSTALLED ? true : false,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18))),
+        child: Ink(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(colors: MAIN_COLOR),
+              borderRadius: const BorderRadius.all(Radius.circular(18))),
+          child: Stack(
+            children: [
+              Positioned(
+                child: Icon(
+                  icon.icon,
+                  color: Colors.black,
+                ),
+                left: 12,
+                top: 16,
               ),
-              left: 12,
-              top: 12,
-            ),
-            Positioned(
-              child: Text(
-                name,
-                style: const TextStyle(color: Colors.black),
-                overflow: TextOverflow.fade,
-              ),
-              left: 45,
-              top: 15,
-            )
-          ],
+              Positioned(
+                child: Text(
+                  name,
+                  style: const TextStyle(color: Colors.black),
+                  overflow: TextOverflow.fade,
+                ),
+                left: 40,
+                top: 22,
+              )
+            ],
+          ),
         ),
         onPressed: () {},
-        style: ButtonStyle(
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),
-                  side: BorderSide(color: color))),
-          backgroundColor: MaterialStateProperty.all(color),
-          enableFeedback: true,
-          overlayColor: MaterialStateProperty.all(Colors.white.withAlpha(34)),
-        ),
+        // style: ButtonStyle(
+        //   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        //       RoundedRectangleBorder(
+        //           borderRadius: BorderRadius.circular(18.0),
+        //           side: BorderSide(color: color))),
+        //   backgroundColor: MaterialStateProperty.all(color),
+        //   enableFeedback: MINECRAFT_INSTALLED ? true : false,
+        //   overlayColor: MaterialStateProperty.all(Colors.white.withAlpha(34)),
       ),
     );
   }

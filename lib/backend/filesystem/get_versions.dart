@@ -1,6 +1,7 @@
 // ignore_for_file: implementation_imports, import_of_legacy_library_into_null_safe, unnecessary_brace_in_string_interps
 
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:mdownloader/constants/consts.dart';
 
@@ -9,7 +10,11 @@ import 'package:http/http.dart' as http;
 
 Future<String> getLocalVersion() async {
   if (!await File(MINECRAFT_LOCATION + VERSION_FILE).exists()) {
-    await File(MINECRAFT_LOCATION + VERSION_FILE).create();
+    if (Directory(MINECRAFT_LOCATION).existsSync()) {
+      await File(MINECRAFT_LOCATION + VERSION_FILE).create();
+    } else {
+      return "MC not installed";
+    }
     return "none";
   } else {
     File mpack = File(MINECRAFT_LOCATION + VERSION_FILE);
@@ -20,7 +25,14 @@ Future<String> getLocalVersion() async {
 }
 
 Future<String> getCloudVersion() async {
-  var response = await http.get(Uri.parse("$API_URL/version/latest"),
-      headers: {"x-access-token": API_KEY});
-  return response.body;
+  try {
+    var response = await http.get(Uri.parse("$API_URL/version/latest"),
+        headers: {
+          "x-access-token": API_KEY
+        }).timeout(const Duration(milliseconds: 500));
+    return response.body;
+  } catch (e) {
+    log("Error @ checking cloud version: ${e.toString()}");
+    return "none";
+  }
 }
