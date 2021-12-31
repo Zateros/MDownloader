@@ -136,6 +136,14 @@ class _HomePageState extends State<HomePage> {
       dev.log("Reloading state");
     });
   }
+  
+  @override
+  void setState(VoidCallback fn) async {
+    MINECRAFT_INSTALLED = await isMinecraftInstalled(Directory(MINECRAFT_LOCATION));
+    setState(() {
+    });
+    super.setState(fn);
+  }
 
   @override
   void setState(VoidCallback fn) async {
